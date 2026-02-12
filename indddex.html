@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار التناظر اللفظي - النموذج 3</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #3498db; --success: #27ae60; --danger: #e74c3c; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 8px solid var(--secondary); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .school-info { font-size: 1.3em; color: var(--secondary); font-weight: bold; }
+        .student-board { background: #e8f4fd; padding: 15px; border-radius: 12px; margin-bottom: 25px; border-right: 6px solid var(--secondary); display: flex; justify-content: space-between; align-items: center; }
+        .timer-display { font-weight: bold; font-size: 1.4em; color: var(--primary); background: white; padding: 5px 15px; border-radius: 8px; border: 2px solid var(--secondary); }
+        .timer-warning { color: var(--danger); border-color: var(--danger); animation: blink 0.8s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+        .question-box h3 { background: #f9f9f9; padding: 20px; border-radius: 10px; border: 1px dashed #ccc; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; list-style: none; padding: 0; }
+        .options-grid li { padding: 15px; border: 2px solid #eee; border-radius: 12px; cursor: pointer; text-align: center; transition: 0.2s; font-weight: 500; }
+        .options-grid li:hover { border-color: var(--secondary); background: #f0f8ff; }
+        .options-grid li.selected { background: var(--secondary); color: white; }
+        .feedback { margin-top: 20px; padding: 20px; border-radius: 12px; display: none; line-height: 1.6; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 20px; }
+        .btn-start { background: var(--success); color: white; }
+        .btn-next { background: var(--primary); color: white; }
+        .footer-note { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; font-style: italic; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>اختبار التناظر اللفظي (نموذج 3) 📝✨</h1>
+        <div class="school-info">ثانوية الأمير عبدالمجيد 🏫🎓</div>
+        <div style="margin-top: 10px; color: #555;">أ / عبدالعزيز الفيفي 👨‍🏫</div>
+    </div>
+    <div id="start-screen">
+        <p style="text-align: center;">مجموعة أسئلة تكميلية من البنك. لديك 30 ثانية لكل سؤال:</p>
+        <input type="text" id="name-input" placeholder="اكتب اسمك هنا..." style="width: 100%; padding: 15px; border-radius: 10px; border: 2px solid #ddd; margin-bottom: 20px;">
+        <button class="btn btn-start" onclick="initQuiz()">ابدأ النموذج الثالث 🚀</button>
+    </div>
+    <div id="quiz-ui" style="display:none;">
+        <div class="student-board"><span id="student-tag"></span><div id="timer-text" class="timer-display">30 ث</div></div>
+        <div id="quiz-content"></div>
+        <button id="next-btn" class="btn btn-next" onclick="nextQuestion()" style="display:none;">السؤال التالي ⬅️</button>
+    </div>
+    <div id="results" style="display:none;">
+        <h2 style="text-align: center; color: var(--success);">اكتمل النموذج الثالث! 🏁</h2>
+        <div id="score-box" style="text-align: center; font-size: 1.8em; margin: 20px 0; font-weight: bold;"></div>
+        <div id="summary-list"></div>
+        <div class="footer-note">مع تمنياتي لك بمزيد من التقدم والنجاح 🌟<br><strong>أ / عبدالعزيز الفيفي</strong></div>
+    </div>
+</div>
+<script>
+const quizData = [
+    { q: "سم : قياس", a: ["لتر : كيل", "ميزان : كجم", "طول : متر", "مسطرة : قياس"], c: 0, r: "علاقة وظيفة: السم يستخدم للقياس واللتر يستخدم للكيل." },
+    { q: "كراهية : نبذ", a: ["أعطى : منح", "حزن : موت", "نفور : شدة", "كسل : تأخر"], c: 0, r: "علاقة ترادف: الكراهية هي النبذ وأعطى هو منح." },
+    { q: "جيد : عقد", a: ["معصم : سوار", "حزام : خصر", "اجتهاد : نجاح", "ماء : بركة"], c: 0, r: "علاقة مكانية إحاطة: العقد يحيط بالجيد (العنق) والسوار يحيط بالمعصم." },
+    { q: "يزداد : يكثر", a: ["يتوانى : يتكاسل", "شرى : اشترى", "آيات : دلالات", "ماء : نار"], c: 0, r: "علاقة ترادف: يزداد بمعنى يكثر ويتوانى بمعنى يتكاسل." },
+    { q: "نور : نار", a: ["بخار : غليان", "طعام : جوع", "اجتهاد : نجاح", "خاتم : إصبع"], c: 0, r: "علاقة نتاج: النار تنتج نوراً والغليان ينتج بخاراً." },
+    { q: "غليان : تبخر", a: ["إهمال : رسوب", "تفاح : مزرعة", "سائل : صلب", "جد : اجتهاد"], c: 0, r: "علاقة سببية: الغليان يسبب التبخر والإهمال يسبب الرسوب." },
+    { q: "تهجد : ليل", a: ["عمل : نهار", "التعليم : المدرسة", "رمضان : صوم", "الكتب : المكتبة"], c: 0, r: "علاقة زمانية: التهجد زمانه الليل والعمل زمانه النهار." },
+    { q: "إصبع : خاتم", a: ["لوحة : إطار", "خلخال : رجل", "سور : منزل", "قارب : ماء"], c: 0, r: "علاقة إحاطة: الخاتم يحيط بالإصبع والإطار يحيط باللوحة." },
+    { q: "العراق : بغداد", a: ["سوريا : دمشق", "السعودية : الدرعية", "القاهرة : الإسكندرية", "السودان : الخرطوم"], c: 0, r: "علاقة الدولة بعاصمتها: بغداد عاصمة العراق ودمشق عاصمة سوريا." },
+    { q: "نبتة : سقي", a: ["تقوى : روح", "فضاء : تحليق", "شباب : صحبة", "سعادة : نفس"], c: 0, r: "علاقة احتياج: النبتة تحتاج سقي والروح تحتاج تقوى." },
+    { q: "بلح : تمر", a: ["سبت : أحد", "كلب : جرو", "علقة : نطفة", "أسد : لبؤة"], c: 0, r: "علاقة تتابع: البلح يصبح تمراً والسبت يليه الأحد." },
+    { q: "طائرة : طيار", a: ["فيلم : مخرج", "كلمة : شاعر", "سائق : دراجة", "دموع : عين"], c: 0, r: "علاقة قيادة: الطيار يقود الطائرة والمخرج يقود الفيلم." },
+    { q: "استصغار : احتقار", a: ["تعظيم : تقدير", "احترام : تكريم", "بارد : حار", "نجاح : توفيق"], c: 0, r: "علاقة ترادف: الاستصغار هو الاحتقار والتعظيم هو التقدير." },
+    { q: "استغفار : سيئات", a: ["زهايمر : معلومات", "ماء : طهارة", "ذكريات : نسيان", "شتاء : خريف"], c: 0, r: "علاقة إزالة: الاستغفار يزيل السيئات والزهايمر يزيل المعلومات." },
+    { q: "قصيدة : بيت", a: ["كتاب : ورقة", "غرفة : مطبخ", "لحم : دجاج", "قلادة : ذهب"], c: 0, r: "علاقة جزء من كل: البيت جزء من القصيدة والورقة جزء من الكتاب." },
+    { q: "سلك : كهرباء", a: ["شريان : دم", "قطار : سكة", "حصان : مضمار", "صحراء : جمل"], c: 0, r: "علاقة مسار: الكهرباء تمر بالسلك والدم يمر بالشريان." },
+    { q: "بندقية : رصاص", a: ["واحة : نخلة", "مدينة : دولة", "سيارة : طيارة", "مستشفى : جامعة"], c: 0, r: "علاقة احتواء: البندقية تضم رصاصاً والواحة تضم نخلاً." },
+    { q: "ديوان : قصائد", a: ["أطلس : خرائط", "كتاب : مقالات", "مجلد : قصص", "معجم : عبارات"], c: 0, r: "علاقة احتواء: الديوان يحتوي قصائد والأطلس يحتوي خرائط." },
+    { q: "حليب : جبن", a: ["رماد : نار", "بئر : ماء", "كتب : علم", "رصاص : حبر"], c: 0, r: "علاقة تحول: الحليب يصبح جبناً والنار تصبح رماداً." },
+    { q: "طفولة : شباب", a: ["غداة : ضحى", "الخير : الشر", "الموت : الحياة", "غدو : رواح"], c: 0, r: "علاقة تتابع زمني: الطفولة تليها الشباب والغداة تليها الضحى." },
+    { q: "فم : طعام", a: ["رأس : دماغ", "عين : بصر", "ساق : نخلة", "جذر : شجرة"], c: 0, r: "علاقة احتواء: الفم يحتوي الطعام والرأس يحتوي الدماغ." },
+    { q: "قافية : قصيدة", a: ["فرد : كوكبة", "عبق : أريج", "صدق : شجاعة", "مقال : قصة"], c: 0, r: "علاقة جزء من كل: القافية جزء من القصيدة والفرد جزء من الكوكبة." },
+    { q: "جملة : كلمة", a: ["سهم : قوس", "بحر : يم", "رمح : مهند", "المال : الأولاد"], c: 0, r: "علاقة تركيب: الكلمة تركب الجملة والسهم يوضع في القوس." },
+    { q: "الغني : الثري", a: ["الفقير : المعدم", "صراحة : احترام", "ذهاب : إياب", "رجل : امرأة"], c: 0, r: "علاقة ترادف: الغني هو الثري والفقير هو المعدم." },
+    { q: "تمر : بلح", a: ["خريف : شتاء", "مقص : منجل", "رجب : شعبان", "كلب : جرو"], c: 0, r: "علاقة تدرج زمني: البلح يصبح تمراً والخريف يليه الشتاء." }
+];
+let currentPos = 0, score = 0, stdName = "", records = [], timerId = null, timeLeft = 30;
+function initQuiz() {
+    stdName = document.getElementById('name-input').value.trim();
+    if(!stdName) return alert("لطفاً، اكتب اسمك أولاً!");
+    if(localStorage.getItem('quiz_lock_m3')) return alert("يسمح بدخول الاختبار مرة واحدة فقط.");
+    document.getElementById('start-screen').style.display = "none";
+    document.getElementById('quiz-ui').style.display = "block";
+    document.getElementById('student-tag').innerHTML = `👤 الطالب: <strong>${stdName}</strong>`;
+    renderQuestion();
+}
+function runTimer() {
+    timeLeft = 30;
+    const timerBox = document.getElementById('timer-text');
+    timerBox.innerText = `${timeLeft} ث`;
+    timerBox.classList.remove('timer-warning');
+    clearInterval(timerId);
+    timerId = setInterval(() => {
+        timeLeft--;
+        timerBox.innerText = `${timeLeft} ث`;
+        if(timeLeft <= 5) timerBox.classList.add('timer-warning');
+        if(timeLeft <= 0) { clearInterval(timerId); handleAutoSkip(); }
+    }, 1000);
+}
+function renderQuestion() {
+    const data = quizData[currentPos];
+    document.getElementById('quiz-content').innerHTML = `
+        <div style="color:#888; font-weight:bold; margin-bottom:10px;">السؤال ${currentPos + 1} من ${quizData.length}</div>
+        <div class="question-box"><h3>${data.q}</h3></div>
+        <ul class="options-grid" id="opts">
+            ${data.a.map((opt, i) => `<li onclick="onSelect(this, ${i})">${opt}</li>`).join('')}
+        </ul>
+        <div id="fb" class="feedback"></div>
+    `;
+    document.getElementById('next-btn').style.display = "none";
+    runTimer();
+}
+function onSelect(el, idx) {
+    if(document.getElementById('next-btn').style.display === "block") return;
+    clearInterval(timerId);
+    const data = quizData[currentPos];
+    const isCorrect = (idx === data.c);
+    if(isCorrect) score++;
+    records.push({q: data.q, user: data.a[idx], correct: data.a[data.c], isCorrect, r: data.r});
+    el.classList.add('selected');
+    const fb = document.getElementById('fb');
+    fb.style.display = "block";
+    fb.style.background = isCorrect ? "#d4edda" : "#f8d7da";
+    fb.innerHTML = `<strong>${isCorrect ? '✅ صح' : '❌ خطأ'}</strong><br>${data.r}`;
+    document.getElementById('next-btn').style.display = "block";
+}
+function handleAutoSkip() {
+    if(document.getElementById('next-btn').style.display === "block") return;
+    records.push({q: quizData[currentPos].q, user: "انتهى الوقت", correct: quizData[currentPos].a[quizData[currentPos].c], isCorrect: false, r: "لم تجب في الوقت المحدد."});
+    nextQuestion();
+}
+function nextQuestion() {
+    currentPos++;
+    if(currentPos < quizData.length) renderQuestion();
+    else finalize();
+}
+function finalize() {
+    localStorage.setItem('quiz_lock_m3', 'true');
+    document.getElementById('quiz-ui').style.display = "none";
+    document.getElementById('results').style.display = "block";
+    document.getElementById('score-box').innerText = `الدرجة النهائية: ${score} من ${quizData.length}`;
+    let html = "<h4>مراجعة الإجابات والشرح (النموذج 3):</h4>";
+    records.forEach((rec, i) => {
+        html += `<div style="padding:10px; border-bottom:1px solid #eee;">
+            <strong>${i+1}. ${rec.q}</strong><br>
+            إجابتك: <span style="color:${rec.isCorrect?'green':'red'}">${rec.user}</span> | 
+            الصحيحة: <span style="color:green">${rec.correct}</span><br>
+            <small>💡 ${rec.r}</small>
+        </div>`;
+    });
+    document.getElementById('summary-list').innerHTML = html;
+}
+</script>
+</body>
+</html>
